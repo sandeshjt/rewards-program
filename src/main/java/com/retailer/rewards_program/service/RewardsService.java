@@ -1,12 +1,12 @@
 package com.retailer.rewards_program.service;
 
-import com.retailer.rewards_program.repository.RewardsRepo;
-import com.retailer.rewards_program.model.Customer;
-import com.retailer.rewards_program.model.Reward;
-import com.retailer.rewards_program.model.Transaction;
+import com.retailer.rewards_program.repository.CustomerRepository;
+import com.retailer.rewards_program.entity.Customer;
+import com.retailer.rewards_program.dto.Reward;
+import com.retailer.rewards_program.entity.Transaction;
+import com.retailer.rewards_program.repository.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,6 +16,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,38 +24,62 @@ public class RewardsService {
 
     private static final Logger logger = LoggerFactory.getLogger(RewardsService.class);
 
-    @Autowired
-    private RewardsRepo rewardsRepo;
+    private final CustomerRepository customerRepository;
+    private final TransactionRepository transactionRepository;
+
+    public RewardsService(CustomerRepository customerRepository, TransactionRepository transactionRepository) {
+        this.customerRepository = customerRepository;
+        this.transactionRepository = transactionRepository;
+    }
 
     public Reward getCustomerRewards(String customerId, LocalDate startDate, LocalDate endDate){
-        Customer customer = rewardsRepo.findCustomerById(customerId);
-        if(customer == null){
-            logger.error("Customer not found for customerId : {}",customerId);
-            throw new NoSuchElementException("Customer not found for id: "+customerId);
-        }
+        Customer customer = customerRepository.findByCustomerId(customerId)
+                .orElseThrow(()->new NoSuchElementException("Customer not found for id: "+customerId));
+        List<Transaction> customerTransactions = transactionRepository.findByCustomerId(customerId)
+                .orElse(Collections.emptyList());
 
-        List<Transaction> customerTransactions = rewardsRepo.getTransactionsByCustomerId(customerId);
+        LocalDate effectiveEndDate = (endDate != null) ? endDate : LocalDate.now();
+        LocalDate effectiveStartDate = (startDate != null) ? startDate : effectiveEndDate.minusMonths(3);
 
-        if(customerTransactions != null && startDate != null && endDate != null){
-            customerTransactions = customerTransactions.stream()
-                    .filter(transaction -> {
-                        LocalDate transactionDate = transaction.getTransactionDate();
-                        return ((transactionDate.isEqual(startDate) || transactionDate.isAfter(startDate)) &&
-                                (transactionDate.isEqual(endDate) || transactionDate.isBefore(endDate)));
-                            }
-                    ).collect(Collectors.toList());
-        }
+        customerTransactions = customerTransactions.stream()
+                .filter(transaction -> {
+                    LocalDate transactionDate = transaction.getTransactionDate();
+                    return !transactionDate.isBefore(effectiveStartDate) && !transactionDate.isAfter(effectiveEndDate);
+                }).collect(Collectors.toList());
 
         Map<Month, Integer> monthlyPoints = new EnumMap<>(Month.class);
         int totalPoints = 0;
 
-        if(null != customerTransactions){
-            for (Transaction transaction : customerTransactions) {
-                int points = calculateRewardPoints(transaction.getAmount());
-                Month month = transaction.getTransactionDate().getMonth();
-                monthlyPoints.merge(month, points, Integer::sum);
-                totalPoints += points;
-            }
+        for (Transaction transaction : customerTransactions) {
+            int points = calculateRewardPoints(transaction.getAmount());
+            Month month = transaction.getTransactionDate().getMonth();
+            monthlyPoints.merge(month, points, Integer::sum);
+            totalPoints += points;
+        }
+
+        return new Reward(
+                customer.getCustomerId(),
+                customer.getName(),
+                monthlyPoints,
+                totalPoints,
+                customerTransactions
+        );
+    }
+
+    public Reward getCustomerAllRewards(String customerId){
+        Customer customer = customerRepository.findByCustomerId(customerId)
+                .orElseThrow(()->new NoSuchElementException("Customer not found for id: "+customerId));
+        List<Transaction> customerTransactions = transactionRepository.findByCustomerId(customerId)
+                .orElse(Collections.emptyList());
+
+        Map<Month, Integer> monthlyPoints = new EnumMap<>(Month.class);
+        int totalPoints = 0;
+
+        for (Transaction transaction : customerTransactions) {
+            int points = calculateRewardPoints(transaction.getAmount());
+            Month month = transaction.getTransactionDate().getMonth();
+            monthlyPoints.merge(month, points, Integer::sum);
+            totalPoints += points;
         }
 
         return new Reward(

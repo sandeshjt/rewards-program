@@ -1,4 +1,4 @@
-# Spring Boot Application - Reward calculator
+# Rewards program Service
 This application helps to calculate the reward points that is offered to the retail customers 
 based on each recorded purchase.
 ---
@@ -20,9 +20,94 @@ dollar spent between `$50` and `$100` in each transaction.
 - Swagger
 - Testing using JUnit5 and Mockito
 
-## **Postmann curl**
-```bash
-postman request 'http://localhost:8080/api/rewards/customer/cust001?startDate=null&endDate=null' \
-  --header 'accept: */*'
-```
+## **Swagger**
+Base URL: http://localhost:8080/swagger-ui/index.html#/
 
+![img.png](img.png)
+
+## **Endpoints**
+## ***GET /api/rewards/customer/{customerId}***
+
+```bash
+curl -X 'GET' \
+  'http://localhost:8080/api/rewards/customer/cust001' \
+  -H 'accept: */*'
+```
+```bash
+{
+  "customerId": "cust001",
+  "customerName": "Alice",
+  "monthlyPoints": {
+    "JANUARY": 0,
+    "OCTOBER": 90,
+    "NOVEMBER": 25,
+    "DECEMBER": 250
+  },
+  "totalPoints": 365,
+  "transactions": [
+    {
+      "transactionId": "T1001",
+      "customerId": "cust001",
+      "amount": 120,
+      "transactionDate": "2025-10-15"
+    },
+    {
+      "transactionId": "T1002",
+      "customerId": "cust001",
+      "amount": 75,
+      "transactionDate": "2025-11-20"
+    },
+    {
+      "transactionId": "T1003",
+      "customerId": "cust001",
+      "amount": 200,
+      "transactionDate": "2025-12-10"
+    },
+    {
+      "transactionId": "T1004",
+      "customerId": "cust001",
+      "amount": 45,
+      "transactionDate": "2026-01-05"
+    }
+  ]
+}
+````
+
+## ***GET /api/rewards/customer/{customerId}/all***
+```bash
+curl -X 'GET' \
+  'http://localhost:8080/api/rewards/customer/{customerId}/all?customerId=cust002' \
+  -H 'accept: */*'
+```
+```bash
+{
+  "customerId": "cust002",
+  "customerName": "Bob",
+  "monthlyPoints": {
+    "JANUARY": 10,
+    "FEBRUARY": 70,
+    "MARCH": 110
+  },
+  "totalPoints": 190,
+  "transactions": [
+    {
+      "transactionId": "T2001",
+      "customerId": "cust002",
+      "amount": 60,
+      "transactionDate": "2025-01-10"
+    },
+    {
+      "transactionId": "T2002",
+      "customerId": "cust002",
+      "amount": 110,
+      "transactionDate": "2025-02-14"
+    },
+    {
+      "transactionId": "T2003",
+      "customerId": "cust002",
+      "amount": 130,
+      "transactionDate": "2026-03-22"
+    }
+  ]
+}
+```

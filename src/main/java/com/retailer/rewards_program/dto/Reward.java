@@ -1,4 +1,6 @@
-package com.retailer.rewards_program.model;
+package com.retailer.rewards_program.dto;
+
+import com.retailer.rewards_program.entity.Transaction;
 
 import java.time.Month;
 import java.util.List;
