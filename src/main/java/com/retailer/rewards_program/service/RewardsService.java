@@ -1,5 +1,6 @@
 package com.retailer.rewards_program.service;
 
+import com.retailer.rewards_program.dto.MonthlyPoints;
 import com.retailer.rewards_program.repository.CustomerRepository;
 import com.retailer.rewards_program.entity.Customer;
 import com.retailer.rewards_program.dto.Reward;
@@ -10,9 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.Collections;
-import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -77,21 +77,27 @@ public class RewardsService {
     private Reward buildReward(Customer customer, List<Transaction> customerTransactions){
 
         logger.info("Calculating reward points for customerId {} : ",customer.getCustomerId());
-        Map<Month, Integer> monthlyPoints = new EnumMap<>(Month.class);
+        Map<String, Integer> monthlyPoints = new LinkedHashMap<>();
         int totalPoints = 0;
 
         for (Transaction transaction : customerTransactions) {
             int points = calculateRewardPoints(transaction.getAmount());
-            Month month = transaction.getTransactionDate().getMonth();
-            monthlyPoints.merge(month, points, Integer::sum);
+            String month = transaction.getTransactionDate().getMonth().name();
+            month = month.charAt(0) + month.substring(1).toLowerCase();
+            monthlyPoints.merge(month, points,Integer::sum);
             totalPoints += points;
         }
+
+        List<MonthlyPoints> monthlyPointsList = monthlyPoints.entrySet().stream()
+                        .map(entry -> new MonthlyPoints(entry.getKey(),entry.getValue()))
+                                .toList();
+
         logger.info("Calculating total : {} for customerId {} : ",totalPoints, customer.getCustomerId());
         return new Reward(
                 customer.getCustomerId(),
                 customer.getName(),
-                monthlyPoints,
                 totalPoints,
+                monthlyPointsList,
                 customerTransactions
         );
     }

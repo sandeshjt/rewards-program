@@ -1,5 +1,6 @@
 package com.retailer.rewards_program.controller;
 
+import com.retailer.rewards_program.dto.MonthlyPoints;
 import com.retailer.rewards_program.dto.Reward;
 import com.retailer.rewards_program.service.RewardsService;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,7 +30,11 @@ public class RewardControllerTest {
 
     @Test
     public void testGetCustomerRewards_Success(){
-        Reward reward = new Reward("cust123", "tesName", Map.of(), 100, List.of());
+        List<MonthlyPoints> monthlyPointsList = List.of(
+                new MonthlyPoints("October", 90),
+                new MonthlyPoints("November", 25)
+        );
+        Reward reward = new Reward("cust123", "tesName",100, monthlyPointsList,List.of());
         Mockito.when(rewardsService.getCustomerRewards(Mockito.anyString(),Mockito.any(),Mockito.any())).thenReturn(reward);
         ResponseEntity<?> responseEntity = rewardsController.getCustomerRewards("cust123", LocalDate.now(),LocalDate.now());
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
@@ -82,7 +86,11 @@ public class RewardControllerTest {
 
     @Test
     public void testGetCustomerAllRewards_Success(){
-        Reward reward = new Reward("cust123", "tesName", Map.of(), 100, List.of());
+        List<MonthlyPoints> monthlyPointsList = List.of(
+                new MonthlyPoints("October", 90),
+                new MonthlyPoints("November", 25)
+        );
+        Reward reward = new Reward("cust123", "tesName", 100, monthlyPointsList, List.of());
         Mockito.when(rewardsService.getCustomerAllRewards(Mockito.anyString())).thenReturn(reward);
         ResponseEntity<?> responseEntity = rewardsController.getCustomerAllRewards("cust123");
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());

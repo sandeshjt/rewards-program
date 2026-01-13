@@ -37,13 +37,25 @@ curl -X 'GET' \
 {
   "customerId": "cust001",
   "customerName": "Alice",
-  "monthlyPoints": {
-    "JANUARY": 0,
-    "OCTOBER": 90,
-    "NOVEMBER": 25,
-    "DECEMBER": 250
-  },
   "totalPoints": 365,
+  "monthlyPoints": [
+    {
+      "month": "October",
+      "points": 90
+    },
+    {
+      "month": "November",
+      "points": 25
+    },
+    {
+      "month": "December",
+      "points": 250
+    },
+    {
+      "month": "January",
+      "points": 0
+    }
+  ],
   "transactions": [
     {
       "transactionId": "T1001",
@@ -83,12 +95,21 @@ curl -X 'GET' \
 {
   "customerId": "cust002",
   "customerName": "Bob",
-  "monthlyPoints": {
-    "JANUARY": 10,
-    "FEBRUARY": 70,
-    "MARCH": 110
-  },
   "totalPoints": 190,
+  "monthlyPoints": [
+    {
+      "month": "January",
+      "points": 10
+    },
+    {
+      "month": "February",
+      "points": 70
+    },
+    {
+      "month": "March",
+      "points": 110
+    }
+  ],
   "transactions": [
     {
       "transactionId": "T2001",
