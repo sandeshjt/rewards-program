@@ -62,8 +62,22 @@ public class RewardsServiceTest {
         Reward reward = rewardsService.getCustomerRewards("Cust001",LocalDate.of(2025,9,16),LocalDate.of(2025,11,30));
         assertEquals("Cust001",customer.getCustomerId());
         assertEquals("Alice",customer.getName());
-        //Only second transaction falls in the date range
         assertEquals(90,reward.getTotalPoints());
+    }
+
+    @Test
+    public void testGetCustomerRewards_NegativeTransactionAmount(){
+        Customer customer = new Customer("Cust001","Alice","alice@email.com");
+        List<Transaction> transactions = List.of(
+                new Transaction("T1001","Cust001",-120.0, LocalDate.of(2025,10,15))
+        );
+        Mockito.when(customerRepository.findByCustomerId(Mockito.anyString())).thenReturn(Optional.of(customer));
+        Mockito.when(transactionRepository.findByCustomerId(Mockito.anyString())).thenReturn(Optional.of(transactions));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,()->{
+            rewardsService.getCustomerRewards("Cust001",LocalDate.of(2025,9,16),LocalDate.of(2025,11,30));
+        });
+        assertEquals("Transaction amount cannot be negative.",exception.getMessage());
     }
 
     @Test

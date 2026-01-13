@@ -3,10 +3,13 @@ package com.retailer.rewards_program.controller;
 import com.retailer.rewards_program.dto.Reward;
 import com.retailer.rewards_program.service.RewardsService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,13 +47,24 @@ public class RewardsController {
             description = "Returns total points, monthly points, and transactions for the customer based on startDate " +
                     "and endDate. If dates are not provided, return rewards for 3 month. "
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reward details retrieved successfully.",
+                    content = @Content(mediaType = "application/json",schema = @Schema(implementation = Reward.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid Input: customerId is null or empty,"+
+                    "startDate is after endDate, or other validation error.", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Customer not found.", content = @Content(mediaType = "application/json"))
+    })
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<?> getCustomerRewards(
+    public ResponseEntity<Reward> getCustomerRewards(
             @PathVariable String customerId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
         if(customerId == null || customerId.trim().isEmpty()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Customer Id cannot be null or empty");
+            throw new IllegalArgumentException("Customer Id cannot be null or empty");
+        }
+
+        if(startDate != null && endDate != null && startDate.isAfter(endDate)){
+            throw new IllegalArgumentException("startDate cannot be after endDate");
         }
             Reward reward = rewardService.getCustomerRewards(customerId, startDate, endDate);
             logger.info("Returning rewards response for customerId : {}",customerId);
@@ -66,10 +80,16 @@ public class RewardsController {
             summary = "Get all reward details for a customer",
             description = "Returns total points, monthly points, and all transactions for the customer."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reward details retrieved successfully.",
+                    content = @Content(mediaType = "application/json",schema = @Schema(implementation = Reward.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid Input : customerId is null or empty.", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Customer not found.", content = @Content(mediaType = "application/json"))
+    })
     @GetMapping("/customer/{customerId}/all")
-    public ResponseEntity<?> getCustomerAllRewards(@RequestParam String customerId){
+    public ResponseEntity<Reward> getCustomerAllRewards(@PathVariable String customerId){
         if(customerId == null || customerId.trim().isEmpty()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Customer Id cannot be null or empty");
+            throw new IllegalArgumentException("Customer Id cannot be null or empty");
         }
         Reward reward = rewardService.getCustomerAllRewards(customerId);
         logger.info("Returning rewards response for customerId : {}",customerId);

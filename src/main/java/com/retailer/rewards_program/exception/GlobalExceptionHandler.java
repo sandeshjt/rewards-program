@@ -21,6 +21,13 @@ public class GlobalExceptionHandler {
                 .body("Customer not found for customerID : "+ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex){
+        logger.error("Illegal Argument : {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Illegal Argument : " + ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGeneralException(Exception ex){
         logger.error("Internal Server Error : {}",ex.getMessage());

@@ -38,13 +38,26 @@ public class RewardControllerTest {
 
     @Test
     public void testGetCustomerRewards_CustomerIdNullOrEmpty(){
-        ResponseEntity<?> responseEntity1 = rewardsController.getCustomerRewards(null, LocalDate.now(),LocalDate.now());
-        assertEquals(HttpStatus.BAD_REQUEST,responseEntity1.getStatusCode());
-        assertEquals("Customer Id cannot be null or empty", responseEntity1.getBody());
+        IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class,()->{
+            rewardsController.getCustomerRewards(null, LocalDate.now(),LocalDate.now());
+        });
+        assertEquals("Customer Id cannot be null or empty", exception1.getMessage());
 
-        ResponseEntity<?> responseEntity2 = rewardsController.getCustomerRewards(" ", LocalDate.now(),LocalDate.now());
-        assertEquals(HttpStatus.BAD_REQUEST,responseEntity1.getStatusCode());
-        assertEquals("Customer Id cannot be null or empty", responseEntity2.getBody());
+        IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class,()->{
+            rewardsController.getCustomerRewards(" ", LocalDate.now(),LocalDate.now());
+        });
+        assertEquals("Customer Id cannot be null or empty", exception2.getMessage());
+    }
+
+    @Test
+    public void testGetCustomerRewards_StartDateAfterEndDate(){
+        LocalDate startDate = LocalDate.of(2025,12,1);
+        LocalDate endDate = LocalDate.of(2025,11,30);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,()->{
+            rewardsController.getCustomerRewards("Cust001", startDate,endDate);
+        });
+        assertEquals("startDate cannot be after endDate", exception.getMessage());
+
     }
 
     @Test
@@ -77,13 +90,15 @@ public class RewardControllerTest {
 
     @Test
     public void testGetCustomerAllRewards_CustomerIdNullOrEmpty(){
-        ResponseEntity<?> responseEntity1 = rewardsController.getCustomerAllRewards(null);
-        assertEquals(HttpStatus.BAD_REQUEST,responseEntity1.getStatusCode());
-        assertEquals("Customer Id cannot be null or empty", responseEntity1.getBody());
+        IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class,()->{
+            rewardsController.getCustomerAllRewards(null);
+        });
+        assertEquals("Customer Id cannot be null or empty", exception1.getMessage());
 
-        ResponseEntity<?> responseEntity2 = rewardsController.getCustomerAllRewards(" ");
-        assertEquals(HttpStatus.BAD_REQUEST,responseEntity1.getStatusCode());
-        assertEquals("Customer Id cannot be null or empty", responseEntity2.getBody());
+        IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class,()->{
+            rewardsController.getCustomerAllRewards(" ");
+        });
+        assertEquals("Customer Id cannot be null or empty", exception2.getMessage());
     }
 
     @Test

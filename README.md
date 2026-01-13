@@ -31,7 +31,7 @@ Base URL: http://localhost:8080/swagger-ui/index.html#/
 ```bash
 curl -X 'GET' \
   'http://localhost:8080/api/rewards/customer/cust001' \
-  -H 'accept: */*'
+  -H 'accept: application/json'
 ```
 ```bash
 {
@@ -77,7 +77,7 @@ curl -X 'GET' \
 ```bash
 curl -X 'GET' \
   'http://localhost:8080/api/rewards/customer/{customerId}/all?customerId=cust002' \
-  -H 'accept: */*'
+  -H 'accept: application/json'
 ```
 ```bash
 {
